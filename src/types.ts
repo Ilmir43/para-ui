@@ -1,6 +1,27 @@
 export type ProjectStatus = "inbox" | "active" | "waiting" | "paused" | "someday" | "done";
 export type ProjectPriority = "low" | "medium" | "high";
 
+export type TaskStatus =
+  | "inbox"
+  | "clarified"
+  | "next"
+  | "planned_today"
+  | "active"
+  | "waiting"
+  | "done"
+  | "someday"
+  | "cancelled";
+
+export type TimeBucket = "micro" | "short" | "medium" | "long";
+
+export interface TaskFlags {
+  quick?: boolean;
+  frog?: boolean;
+  batchable?: boolean;
+  fear?: boolean;
+  waiting?: boolean;
+}
+
 export interface Project {
   id: string;
   fileName: string;
@@ -16,11 +37,21 @@ export interface Project {
 export interface Task {
   id: string;
   title: string;
+  description?: string;
   projectId: string;
-  done: boolean;
-  today: boolean;
+  goalId?: string;
+  area: string;
+  context: string;
+  estimatedMinutes: number;
+  timeBucket: TimeBucket;
+  status: TaskStatus;
+  flags: TaskFlags;
+  createdAt: string;
+  dueDate: string | null;
+  plannedDate?: string | null;
+  completedAt?: string | null;
+  dailyPriority?: boolean;
   priority: ProjectPriority;
-  due: string | null;
 }
 
 export interface Habit {
@@ -37,7 +68,7 @@ export interface DailyNote {
 }
 
 export interface AppState {
-  activeTab: "dashboard" | "projects" | "today" | "daily";
+  activeTab: "dashboard" | "projects" | "processing" | "today" | "daily";
   statusFilter: ProjectStatus | "all";
   priorityFilter: ProjectPriority | "all";
   areaFilter: string | "all";

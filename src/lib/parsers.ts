@@ -65,10 +65,18 @@ export function parseProjectFile(fileName: string, text: string): ParsedProjectR
       id: taskId,
       title,
       projectId,
-      done,
-      today: false,
-      priority: "medium",
-      due: null,
+      area: data.area || "general",
+      context: data.context || "desk",
+      estimatedMinutes: Number(data.estimatedMinutes) || 25,
+      timeBucket: "short",
+      status: done ? "done" : "next",
+      flags: { quick: false, frog: false, batchable: false, fear: false, waiting: false },
+      createdAt: data.createdAt || new Date().toISOString(),
+      dueDate: data.deadline || null,
+      plannedDate: null,
+      completedAt: done ? new Date().toISOString() : null,
+      dailyPriority: false,
+      priority: (data.priority as Project["priority"]) || "medium",
     });
   }
 

@@ -1,11 +1,16 @@
+import type { AppState } from "../types";
+
+type TabKey = AppState["activeTab"];
+
 interface TabsProps {
-  active: string;
-  onChange: (tab: "dashboard" | "projects" | "today" | "daily") => void;
+  active: TabKey;
+  onChange: (tab: TabKey) => void;
 }
 
-const tabs: { key: TabsProps["active"]; label: string }[] = [
+const tabs: { key: TabKey; label: string }[] = [
   { key: "dashboard", label: "Дашборд" },
   { key: "projects", label: "Проекты" },
+  { key: "processing", label: "Processing" },
   { key: "today", label: "Сегодня" },
   { key: "daily", label: "Ежедневник" },
 ];

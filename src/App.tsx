@@ -5,8 +5,11 @@ import Dashboard from "./components/Dashboard";
 import ProjectsTab from "./components/ProjectsTab";
 import Today from "./components/Today";
 import Daily from "./components/Daily";
+import Processing from "./components/Processing";
+import StatusBoard from "./components/StatusBoard";
 import { parseDailyFile, parseProjectFile } from "./lib/parsers";
 import { slugify } from "./lib/slugify";
+import { demoDaily, demoProjects, demoTasks } from "./lib/demoData";
 import { AppState, DailyNote, Project, ProjectFormValue, Task } from "./types";
 
 const initialState: AppState = {
@@ -19,9 +22,9 @@ const initialState: AppState = {
 };
 
 export default function App() {
-  const [projects, setProjects] = createSignal<Project[]>([]);
-  const [tasks, setTasks] = createSignal<Task[]>([]);
-  const [dailyNotes, setDailyNotes] = createSignal<DailyNote[]>([]);
+  const [projects, setProjects] = createSignal<Project[]>(demoProjects);
+  const [tasks, setTasks] = createSignal<Task[]>(demoTasks);
+  const [dailyNotes, setDailyNotes] = createSignal<DailyNote[]>(demoDaily);
   const [state, setState] = createSignal<AppState>(initialState);
 
   const updateState = (partial: Partial<AppState>) => setState((prev) => ({ ...prev, ...partial }));
@@ -81,7 +84,22 @@ export default function App() {
   };
 
   const handleToggleTask = (id: string) => {
-    setTasks((current) => current.map((task) => (task.id === id ? { ...task, done: !task.done } : task)));
+    const now = new Date().toISOString();
+    setTasks((current) =>
+      current.map((task) =>
+        task.id === id
+          ? {
+              ...task,
+              status: task.status === "done" ? "next" : "done",
+              completedAt: task.status === "done" ? null : now,
+            }
+          : task
+      )
+    );
+  };
+
+  const handleUpdateTask = (id: string, payload: Partial<Task>) => {
+    setTasks((current) => current.map((task) => (task.id === id ? { ...task, ...payload } : task)));
   };
 
   const handleToggleHabit = (id: string) => {
@@ -162,7 +180,7 @@ export default function App() {
             Выбрать папку ежедневников
           </button>
         </div>
-        <div style={{ marginTop: "12px" }}>
+        <div style={{ "margin-top": "12px" }}>
           <Show when={!noData} fallback={
             <section class="card">
               <div class="card-header">
@@ -199,6 +217,13 @@ export default function App() {
                 onCancelForm={handleCancelForm}
                 onSubmitForm={handleSubmitForm}
               />
+            </Show>
+
+            <Show when={state().activeTab === "processing"}>
+              <div class="layout-columns">
+                <Processing projects={projects()} tasks={tasks()} onUpdateTask={handleUpdateTask} />
+                <StatusBoard projects={projects()} tasks={tasks()} onToggleTask={handleToggleTask} />
+              </div>
             </Show>
 
             <Show when={state().activeTab === "today"}>

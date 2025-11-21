@@ -57,7 +57,7 @@ export default function Daily({ notes, onToggleHabit }: DailyProps) {
         ))}
       </section>
 
-      <section class="card" style={{ marginTop: "12px" }}>
+      <section class="card" style={{ "margin-top": "12px" }}>
         <div class="card-header">
           <div>
             <div class="card-title">История ежедневников</div>
