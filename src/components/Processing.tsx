@@ -1,10 +1,11 @@
 import { createMemo, createSignal, Show } from "solid-js";
-import { Project, Task, TaskStatus, TimeBucket } from "../types";
+import { Project, Task, TaskFormValue, TaskStatus, TimeBucket } from "../types";
 
 interface ProcessingProps {
   projects: Project[];
   tasks: Task[];
   onUpdateTask: (id: string, payload: Partial<Task>) => void;
+  onCreateInboxTask: (payload: TaskFormValue) => void;
 }
 
 export default function Processing(props: ProcessingProps) {
@@ -15,6 +16,8 @@ export default function Processing(props: ProcessingProps) {
   const [draftArea, setDraftArea] = createSignal("health");
   const [draftContext, setDraftContext] = createSignal("desktop");
   const [draftBucket, setDraftBucket] = createSignal<TimeBucket>("short");
+  const [newTitle, setNewTitle] = createSignal("");
+  const [newProjectId, setNewProjectId] = createSignal("");
 
   const handleCommit = (status: TaskStatus) => {
     const task = current();
@@ -36,6 +39,28 @@ export default function Processing(props: ProcessingProps) {
 
   const handleSkip = () => setCursor((value) => value + 1);
 
+  const handleCreateInboxTask = (event: Event) => {
+    event.preventDefault();
+    if (!newTitle().trim()) return;
+
+    const selectedProjectId = newProjectId() || props.projects[0]?.id || "inbox";
+
+    props.onCreateInboxTask({
+      title: newTitle().trim(),
+      projectId: selectedProjectId,
+      area: props.projects.find((p) => p.id === selectedProjectId)?.area || draftArea(),
+      context: draftContext(),
+      timeBucket: draftBucket(),
+      status: "inbox",
+      priority: "medium",
+      description: "",
+      dueDate: "",
+      plannedDate: "",
+    });
+
+    setNewTitle("");
+  };
+
   return (
     <section class="card">
       <div class="section-title-row">
@@ -47,6 +72,30 @@ export default function Processing(props: ProcessingProps) {
         </div>
         <div class="pill">GTD / Smart morning</div>
       </div>
+
+      <form class="grid-3" onSubmit={handleCreateInboxTask} style={{ gap: "8px", "align-items": "end" }}>
+        <label class="form-field">
+          <span class="small-label">Быстро добавить в inbox</span>
+          <input
+            type="text"
+            placeholder="Например: позвонить стоматологу"
+            value={newTitle()}
+            onInput={(e) => setNewTitle(e.currentTarget.value)}
+          />
+        </label>
+        <label class="form-field">
+          <span class="small-label">Проект</span>
+          <select value={newProjectId()} onInput={(e) => setNewProjectId(e.currentTarget.value)}>
+            <option value="">Без проекта</option>
+            {props.projects.map((project) => (
+              <option value={project.id}>{project.title}</option>
+            ))}
+          </select>
+        </label>
+        <button class="btn-solid" type="submit">
+          В inbox
+        </button>
+      </form>
 
       <Show
         when={current()}

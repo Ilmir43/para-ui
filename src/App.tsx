@@ -11,7 +11,7 @@ import { parseDailyFile, parseProjectFile } from "./lib/parsers";
 import { slugify } from "./lib/slugify";
 import { demoDaily, demoProjects, demoTasks } from "./lib/demoData";
 import { envPaths } from "./lib/env";
-import { AppState, DailyNote, Project, ProjectFormValue, Task } from "./types";
+import { AppState, DailyNote, Project, ProjectFormValue, Task, TaskFormValue } from "./types";
 
 const initialState: AppState = {
   activeTab: "dashboard",
@@ -109,6 +109,72 @@ export default function App() {
 
   const handleUpdateTask = (id: string, payload: Partial<Task>) => {
     setTasks((current) => current.map((task) => (task.id === id ? { ...task, ...payload } : task)));
+  };
+
+  const handleUpsertTask = (mode: "create" | "edit", value: TaskFormValue) => {
+    if (mode === "edit" && value.id) {
+      setTasks((current) =>
+        current.map((task) =>
+          task.id === value.id
+            ? {
+                ...task,
+                ...value,
+                dueDate: value.dueDate || null,
+                plannedDate: value.plannedDate || null,
+              }
+            : task
+        )
+      );
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const projectId = value.projectId || state().selectedProjectId || projects()[0]?.id || "inbox";
+
+    const newTask: Task = {
+      id: value.id || slugify(value.title),
+      title: value.title,
+      description: value.description,
+      projectId,
+      area: value.area,
+      context: value.context,
+      estimatedMinutes: 20,
+      timeBucket: value.timeBucket,
+      status: value.status || "inbox",
+      flags: {},
+      createdAt: now,
+      dueDate: value.dueDate || null,
+      plannedDate: value.plannedDate || null,
+      completedAt: null,
+      dailyPriority: false,
+      priority: value.priority,
+    };
+
+    setTasks((current) => [newTask, ...current]);
+  };
+
+  const reorderById = <T extends { id: string }>(list: T[], sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return list;
+    const next = [...list];
+    const fromIndex = next.findIndex((item) => item.id === sourceId);
+    const toIndex = next.findIndex((item) => item.id === targetId);
+    if (fromIndex === -1 || toIndex === -1) return list;
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    return next;
+  };
+
+  const handleReorderProjects = (sourceId: string, targetId: string) => {
+    setProjects((current) => reorderById(current, sourceId, targetId));
+  };
+
+  const handleReorderTasks = (projectId: string, sourceId: string, targetId: string) => {
+    setTasks((current) => {
+      const projectTasks = current.filter((task) => task.projectId === projectId);
+      const reordered = reorderById(projectTasks, sourceId, targetId);
+      const otherTasks = current.filter((task) => task.projectId !== projectId);
+      return [...reordered, ...otherTasks];
+    });
   };
 
   const handleToggleHabit = (id: string) => {
@@ -266,6 +332,9 @@ export default function App() {
                 onFilterChange={handleFilterChange}
                 onSelectProject={handleSelectProject}
                 onToggleTask={handleToggleTask}
+                onUpsertTask={handleUpsertTask}
+                onReorderProjects={handleReorderProjects}
+                onReorderTasks={handleReorderTasks}
                 onStartCreate={handleStartCreate}
                 onStartEdit={handleStartEdit}
                 onCancelForm={handleCancelForm}
@@ -275,7 +344,12 @@ export default function App() {
 
             <Show when={state().activeTab === "processing"}>
               <div class="layout-columns">
-                <Processing projects={projects()} tasks={tasks()} onUpdateTask={handleUpdateTask} />
+                <Processing
+                  projects={projects()}
+                  tasks={tasks()}
+                  onUpdateTask={handleUpdateTask}
+                  onCreateInboxTask={(value) => handleUpsertTask("create", value)}
+                />
                 <StatusBoard projects={projects()} tasks={tasks()} onToggleTask={handleToggleTask} />
               </div>
             </Show>

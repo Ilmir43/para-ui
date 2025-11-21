@@ -13,11 +13,22 @@ const statusLabel = {
 interface ProjectCardProps {
   project: Project;
   onSelect?: (id: string) => void;
+  draggable?: boolean;
+  onDragStart?: (id: string) => void;
+  onDropCard?: (targetId: string) => void;
 }
 
 export default function ProjectCard(props: ProjectCardProps) {
   return (
-    <article class="project-card" data-project-id={props.project.id} onClick={() => props.onSelect?.(props.project.id)}>
+    <article
+      class="project-card"
+      data-project-id={props.project.id}
+      draggable={props.draggable}
+      onDragStart={() => props.onDragStart?.(props.project.id)}
+      onDragOver={(event) => props.draggable && event.preventDefault()}
+      onDrop={() => props.onDropCard?.(props.project.id)}
+      onClick={() => props.onSelect?.(props.project.id)}
+    >
       <div class="project-title">{props.project.title}</div>
       <div class="project-desc">{props.project.description}</div>
       <div class="project-meta-row">

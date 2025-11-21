@@ -1,8 +1,9 @@
-import { createMemo } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 import ProjectCard from "./ProjectCard";
 import TaskItem from "./TaskItem";
 import ProjectForm from "./ProjectForm";
-import { Project, ProjectFormValue, Task } from "../types";
+import TaskForm from "./TaskForm";
+import { Project, ProjectFormValue, Task, TaskFormValue } from "../types";
 
 const priorityLabel = { low: "Низкий", medium: "Средний", high: "Высокий" } as const;
 const statusLabel = {
@@ -25,6 +26,9 @@ interface ProjectsTabProps {
   onFilterChange: (type: "status" | "priority" | "area", value: string) => void;
   onSelectProject: (id: string) => void;
   onToggleTask: (id: string) => void;
+  onUpsertTask: (mode: "create" | "edit", value: TaskFormValue) => void;
+  onReorderProjects: (sourceId: string, targetId: string) => void;
+  onReorderTasks: (projectId: string, sourceId: string, targetId: string) => void;
   onStartCreate: () => void;
   onStartEdit: (id: string) => void;
   onCancelForm: () => void;
@@ -32,6 +36,11 @@ interface ProjectsTabProps {
 }
 
 export default function ProjectsTab(props: ProjectsTabProps) {
+  const [taskFormMode, setTaskFormMode] = createSignal<"idle" | "create" | "edit">("idle");
+  const [editingTaskId, setEditingTaskId] = createSignal<string | null>(null);
+  const [draggingProjectId, setDraggingProjectId] = createSignal<string | null>(null);
+  const [draggingTaskId, setDraggingTaskId] = createSignal<string | null>(null);
+
   const filtered = createMemo(() =>
     props.projects.filter((p) => {
       if (props.statusFilter !== "all" && p.status !== props.statusFilter) return false;
@@ -50,6 +59,41 @@ export default function ProjectsTab(props: ProjectsTabProps) {
   );
 
   const areas = createMemo(() => Array.from(new Set(props.projects.map((p) => p.area))));
+
+  const handleDropProject = (targetId: string) => {
+    const sourceId = draggingProjectId();
+    if (!sourceId || sourceId === targetId) return;
+    props.onReorderProjects(sourceId, targetId);
+  };
+
+  const handleDropTask = (targetId: string) => {
+    const activeTaskId = draggingTaskId();
+    if (!current() || !activeTaskId || activeTaskId === targetId) return;
+    props.onReorderTasks(current()!.id, activeTaskId, targetId);
+  };
+
+  const startCreateTask = () => {
+    setTaskFormMode("create");
+    setEditingTaskId(null);
+  };
+
+  const startEditTask = (id: string) => {
+    setTaskFormMode("edit");
+    setEditingTaskId(id);
+  };
+
+  const cancelTaskForm = () => {
+    setTaskFormMode("idle");
+    setEditingTaskId(null);
+  };
+
+  const submitTaskForm = (value: TaskFormValue) => {
+    props.onUpsertTask(taskFormMode() === "edit" ? "edit" : "create", value);
+    cancelTaskForm();
+  };
+
+  const handleDragStartTask = (id: string) => setDraggingTaskId(id);
+  const handleDragStartProject = (id: string) => setDraggingProjectId(id);
 
   return (
     <div class="layout-columns">
@@ -93,7 +137,18 @@ export default function ProjectsTab(props: ProjectsTabProps) {
         </div>
         <div class="projects-grid">
           {filtered().length ? (
-            filtered().map((project) => <ProjectCard project={project} onSelect={props.onSelectProject} />)
+            filtered().map((project) => (
+              <ProjectCard
+                project={project}
+                onSelect={(id) => {
+                  props.onSelectProject(id);
+                  setTaskFormMode("idle");
+                }}
+                draggable
+                onDragStart={() => handleDragStartProject(project.id)}
+                onDropCard={handleDropProject}
+              />
+            ))
           ) : (
             <div class="empty-state">Нет проектов под такие фильтры.</div>
           )}
@@ -124,6 +179,9 @@ export default function ProjectsTab(props: ProjectsTabProps) {
                 Редактировать выбранный
               </button>
             )}
+            <button class="btn-ghost" type="button" onClick={startCreateTask} disabled={!current()}>
+              Добавить задачу в inbox
+            </button>
           </div>
         )}
 
@@ -160,11 +218,34 @@ export default function ProjectsTab(props: ProjectsTabProps) {
                 <ul class="tasks-list">
                   {projectTasks().length
                     ? projectTasks().map((task) => (
-                        <TaskItem task={task} projectName={current()!.title} onToggle={props.onToggleTask} />
+                        <TaskItem
+                          task={task}
+                          projectName={current()!.title}
+                          onToggle={props.onToggleTask}
+                          onEdit={startEditTask}
+                          draggable
+                          onDragStart={handleDragStartTask}
+                          onDropTask={handleDropTask}
+                        />
                       ))
                     : <div class="empty-state">Нет задач в этом проекте.</div>}
                 </ul>
               </div>
+              <Show when={taskFormMode() !== "idle"}>
+                <div class="card">
+                  <div class="card-title">
+                    {taskFormMode() === "create" ? "Новая задача (Inbox)" : "Редактировать задачу"}
+                  </div>
+                  <TaskForm
+                    mode={taskFormMode() === "edit" ? "edit" : "create"}
+                    projects={props.projects}
+                    defaultProjectId={current()!.id}
+                    initial={props.tasks.find((t) => t.id === editingTaskId())}
+                    onCancel={cancelTaskForm}
+                    onSubmit={submitTaskForm}
+                  />
+                </div>
+              </Show>
             </div>
           </div>
         )}
