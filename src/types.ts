@@ -76,6 +76,20 @@ export interface AppState {
   formMode: "idle" | "create" | "edit";
 }
 
+export interface TaskFormValue {
+  id?: string;
+  title: string;
+  description?: string;
+  projectId: string;
+  area: string;
+  context: string;
+  timeBucket: TimeBucket;
+  status: TaskStatus;
+  priority: ProjectPriority;
+  dueDate?: string | null;
+  plannedDate?: string | null;
+}
+
 export interface ProjectFormValue {
   id: string;
   title: string;

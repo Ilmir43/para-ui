@@ -4,6 +4,10 @@ interface TaskItemProps {
   task: Task;
   projectName: string;
   onToggle: (id: string) => void;
+  onEdit?: (id: string) => void;
+  draggable?: boolean;
+  onDragStart?: (id: string) => void;
+  onDropTask?: (targetId: string) => void;
 }
 
 export default function TaskItem(props: TaskItemProps) {
@@ -13,7 +17,14 @@ export default function TaskItem(props: TaskItemProps) {
   const isAvoiding = props.task.flags.fear || isStaleNext;
 
   return (
-    <li class={`task-item ${props.task.status === "done" ? "done" : ""}`} data-task-id={props.task.id}>
+    <li
+      class={`task-item ${props.task.status === "done" ? "done" : ""}`}
+      data-task-id={props.task.id}
+      draggable={props.draggable}
+      onDragStart={() => props.onDragStart?.(props.task.id)}
+      onDragOver={(event) => props.draggable && event.preventDefault()}
+      onDrop={() => props.onDropTask?.(props.task.id)}
+    >
       <button class={`checkbox ${props.task.status === "done" ? "checked" : ""}`} onClick={() => props.onToggle(props.task.id)}>
         {props.task.status === "done" ? "✓" : ""}
       </button>
@@ -38,6 +49,11 @@ export default function TaskItem(props: TaskItemProps) {
           </div>
         )}
       </div>
+      {props.onEdit && (
+        <button class="btn-text" type="button" onClick={() => props.onEdit?.(props.task.id)}>
+          Редактировать
+        </button>
+      )}
     </li>
   );
 }
