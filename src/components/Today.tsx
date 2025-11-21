@@ -64,7 +64,6 @@ export default function Today({ projects, tasks, onToggleTask }: TodayProps) {
             <ul class="tasks-list">
               {frogs.map((task) => (
                 <TaskItem
-                  key={task.id}
                   task={task}
                   projectName={projects.find((p) => p.id === task.projectId)?.title || "Без проекта"}
                   onToggle={onToggleTask}
@@ -81,7 +80,7 @@ export default function Today({ projects, tasks, onToggleTask }: TodayProps) {
             if (!project) return null;
             return (
               <div>
-                <div class="project-title" style={{ marginBottom: "4px" }}>
+                <div class="project-title" style={{ "margin-bottom": "4px" }}>
                   {project.title}
                   <span class="tag-pill">Проект</span>
                 </div>
@@ -89,7 +88,7 @@ export default function Today({ projects, tasks, onToggleTask }: TodayProps) {
                   {grouped()[projectId]
                     .filter((task) => !task.flags.frog)
                     .map((task) => (
-                      <TaskItem key={task.id} task={task} projectName={project.title} onToggle={onToggleTask} />
+                      <TaskItem task={task} projectName={project.title} onToggle={onToggleTask} />
                     ))}
                 </ul>
               </div>
@@ -103,7 +102,6 @@ export default function Today({ projects, tasks, onToggleTask }: TodayProps) {
             <ul class="tasks-list compact">
               {quick.map((task) => (
                 <TaskItem
-                  key={task.id}
                   task={task}
                   projectName={projects.find((p) => p.id === task.projectId)?.title || "Без проекта"}
                   onToggle={onToggleTask}
@@ -119,7 +117,6 @@ export default function Today({ projects, tasks, onToggleTask }: TodayProps) {
             <ul class="tasks-list compact">
               {waiting.map((task) => (
                 <TaskItem
-                  key={task.id}
                   task={task}
                   projectName={projects.find((p) => p.id === task.projectId)?.title || "Без проекта"}
                   onToggle={onToggleTask}

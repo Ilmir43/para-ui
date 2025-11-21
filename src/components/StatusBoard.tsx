@@ -47,7 +47,6 @@ export default function StatusBoard({ projects, tasks, onToggleTask }: StatusBoa
                     const project = projects.find((p) => p.id === task.projectId);
                     return (
                       <TaskItem
-                        key={task.id}
                         task={task}
                         projectName={project?.title || "Без проекта"}
                         onToggle={onToggleTask}
