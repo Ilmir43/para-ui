@@ -5,3 +5,5 @@ export const envPaths = {
   areasDir: normalize(import.meta.env.VITE_AREAS_DIR),
   dailyDir: normalize(import.meta.env.VITE_DAILY_DIR),
 };
+
+export const hasEnvPath = (value: string | undefined) => Boolean(normalize(value));

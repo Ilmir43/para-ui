@@ -1,4 +1,4 @@
-import { createMemo, createSignal, Show } from "solid-js";
+import { createMemo, createSignal, onMount, Show } from "solid-js";
 import Header from "./components/Header";
 import Tabs from "./components/Tabs";
 import Dashboard from "./components/Dashboard";
@@ -10,7 +10,7 @@ import StatusBoard from "./components/StatusBoard";
 import { parseDailyFile, parseProjectFile } from "./lib/parsers";
 import { slugify } from "./lib/slugify";
 import { demoDaily, demoProjects, demoTasks } from "./lib/demoData";
-import { envPaths } from "./lib/env";
+import { envPaths, hasEnvPath } from "./lib/env";
 import { AppState, DailyNote, Project, ProjectFormValue, Task, TaskFormValue } from "./types";
 
 const initialState: AppState = {
@@ -35,6 +35,71 @@ export default function App() {
       envPaths.dailyDir && { label: "Ежедневник", value: envPaths.dailyDir },
     ].filter(Boolean) as { label: string; value: string }[]
   ).sort((a, b) => a.label.localeCompare(b.label));
+
+  const fetchMarkdownFromHttpDir = async (baseDir: string) => {
+    const normalized = baseDir.replace(/\/$/, "");
+    const indexUrl = `${normalized}/index.json`;
+    const response = await fetch(indexUrl);
+    if (!response.ok) throw new Error(`Не удалось загрузить индекс из ${indexUrl}`);
+    const payload = (await response.json()) as { files?: string[] };
+    if (!payload.files?.length) throw new Error("index.json не содержит списка файлов.");
+
+    const files: { name: string; content: string }[] = [];
+    for (const fileName of payload.files) {
+      if (!fileName.toLowerCase().endsWith(".md")) continue;
+      const url = `${normalized}/${fileName}`;
+      const fileResponse = await fetch(url);
+      if (!fileResponse.ok) throw new Error(`Не удалось загрузить ${url}`);
+      const content = await fileResponse.text();
+      files.push({ name: fileName, content });
+    }
+
+    return files;
+  };
+
+  const loadProjectsFromEnvDir = async () => {
+    if (!hasEnvPath(envPaths.projectsDir)) return false;
+    try {
+      const files = await fetchMarkdownFromHttpDir(envPaths.projectsDir);
+      const collectedProjects: Project[] = [];
+      const collectedTasks: Task[] = [];
+
+      files.forEach(({ name, content }) => {
+        const parsed = parseProjectFile(name, content);
+        collectedProjects.push(...parsed.projects);
+        collectedTasks.push(...parsed.tasks);
+      });
+
+      setProjects(collectedProjects);
+      setTasks(collectedTasks);
+      if (collectedProjects.length) {
+        updateState({ selectedProjectId: collectedProjects[0].id });
+      }
+      return true;
+    } catch (error) {
+      console.warn("Автоподгрузка проектов из переменных окружения не удалась:", error);
+      return false;
+    }
+  };
+
+  const loadDailyFromEnvDir = async () => {
+    if (!hasEnvPath(envPaths.dailyDir)) return false;
+    try {
+      const files = await fetchMarkdownFromHttpDir(envPaths.dailyDir);
+      const notes: DailyNote[] = [];
+
+      files.forEach(({ name, content }) => {
+        notes.push(parseDailyFile(name, content));
+      });
+
+      notes.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      setDailyNotes(notes);
+      return true;
+    } catch (error) {
+      console.warn("Автоподгрузка ежедневников из переменных окружения не удалась:", error);
+      return false;
+    }
+  };
 
   const updateState = (partial: Partial<AppState>) => setState((prev) => ({ ...prev, ...partial }));
 
@@ -91,6 +156,11 @@ export default function App() {
       alert("Не удалось прочитать папку ежедневников.");
     }
   };
+
+  onMount(() => {
+    loadProjectsFromEnvDir();
+    loadDailyFromEnvDir();
+  });
 
   const handleToggleTask = (id: string) => {
     const now = new Date().toISOString();
