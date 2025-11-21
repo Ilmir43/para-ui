@@ -15,15 +15,15 @@ const tabs: { key: TabKey; label: string }[] = [
   { key: "daily", label: "Ежедневник" },
 ];
 
-export default function Tabs({ active, onChange }: TabsProps) {
+export default function Tabs(props: TabsProps) {
   return (
     <nav>
       {tabs.map((tab) => (
         <button
-          class={`tab-btn ${tab.key === active ? "active" : ""}`}
+          class={`tab-btn ${tab.key === props.active ? "active" : ""}`}
           data-tab={tab.key}
           type="button"
-          onClick={() => onChange(tab.key)}
+          onClick={() => props.onChange(tab.key)}
         >
           <span class="dot" />
           {tab.label}

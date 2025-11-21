@@ -8,23 +8,23 @@ interface TodayProps {
   onToggleTask: (id: string) => void;
 }
 
-export default function Today({ projects, tasks, onToggleTask }: TodayProps) {
-  const todayList = tasks.filter((t) => t.status === "planned_today" || t.status === "active");
-  const dailyPriority = todayList.find((t) => t.dailyPriority);
-  const frogs = todayList.filter((t) => t.flags.frog);
-  const quick = todayList.filter((t) => t.timeBucket === "micro" && t.flags.quick);
-  const waiting = tasks.filter((t) => t.status === "waiting");
+export default function Today(props: TodayProps) {
+  const todayList = createMemo(() => props.tasks.filter((t) => t.status === "planned_today" || t.status === "active"));
+  const waiting = createMemo(() => props.tasks.filter((t) => t.status === "waiting"));
+  const dailyPriority = createMemo(() => todayList().find((t) => t.dailyPriority));
+  const frogs = createMemo(() => todayList().filter((t) => t.flags.frog));
+  const quick = createMemo(() => todayList().filter((t) => t.timeBucket === "micro" && t.flags.quick));
 
   const grouped = createMemo(() => {
     const bucket: Record<string, Task[]> = {};
-    todayList.forEach((task) => {
+    todayList().forEach((task) => {
       if (!bucket[task.projectId]) bucket[task.projectId] = [];
       bucket[task.projectId].push(task);
     });
     return bucket;
   });
 
-  if (!todayList.length) {
+  if (!todayList().length) {
     return (
       <section class="card">
         <div class="section-title-row">
@@ -43,30 +43,30 @@ export default function Today({ projects, tasks, onToggleTask }: TodayProps) {
       <div class="section-title-row">
         <div>
           <div class="section-title">Сегодня</div>
-          <div class="card-subtitle">{todayList.length} задач в фокусе</div>
+          <div class="card-subtitle">{todayList().length} задач в фокусе</div>
         </div>
       </div>
       <div class="stack">
-        {dailyPriority && (
+        {dailyPriority() && (
           <div class="card accent">
             <div class="card-title">Daily Priority</div>
             <TaskItem
-              task={dailyPriority}
-              projectName={projects.find((p) => p.id === dailyPriority.projectId)?.title || "Без проекта"}
-              onToggle={onToggleTask}
+              task={dailyPriority()!}
+              projectName={props.projects.find((p) => p.id === dailyPriority()!.projectId)?.title || "Без проекта"}
+              onToggle={props.onToggleTask}
             />
           </div>
         )}
 
-        {frogs.length > 0 && (
+        {frogs().length > 0 && (
           <div>
             <div class="small-label">Лягушки</div>
             <ul class="tasks-list">
-              {frogs.map((task) => (
+              {frogs().map((task) => (
                 <TaskItem
                   task={task}
-                  projectName={projects.find((p) => p.id === task.projectId)?.title || "Без проекта"}
-                  onToggle={onToggleTask}
+                  projectName={props.projects.find((p) => p.id === task.projectId)?.title || "Без проекта"}
+                  onToggle={props.onToggleTask}
                 />
               ))}
             </ul>
@@ -76,7 +76,7 @@ export default function Today({ projects, tasks, onToggleTask }: TodayProps) {
         <div>
           <div class="small-label">Фокус-задачи</div>
           {Object.keys(grouped()).map((projectId) => {
-            const project = projects.find((p) => p.id === projectId);
+            const project = props.projects.find((p) => p.id === projectId);
             if (!project) return null;
             return (
               <div>
@@ -88,7 +88,7 @@ export default function Today({ projects, tasks, onToggleTask }: TodayProps) {
                   {grouped()[projectId]
                     .filter((task) => !task.flags.frog)
                     .map((task) => (
-                      <TaskItem task={task} projectName={project.title} onToggle={onToggleTask} />
+                      <TaskItem task={task} projectName={project.title} onToggle={props.onToggleTask} />
                     ))}
                 </ul>
               </div>
@@ -96,30 +96,30 @@ export default function Today({ projects, tasks, onToggleTask }: TodayProps) {
           })}
         </div>
 
-        {quick.length > 0 && (
+        {quick().length > 0 && (
           <div>
             <div class="small-label">Сделать быстро</div>
             <ul class="tasks-list compact">
-              {quick.map((task) => (
+              {quick().map((task) => (
                 <TaskItem
                   task={task}
-                  projectName={projects.find((p) => p.id === task.projectId)?.title || "Без проекта"}
-                  onToggle={onToggleTask}
+                  projectName={props.projects.find((p) => p.id === task.projectId)?.title || "Без проекта"}
+                  onToggle={props.onToggleTask}
                 />
               ))}
             </ul>
           </div>
         )}
 
-        {waiting.length > 0 && (
+        {waiting().length > 0 && (
           <div>
             <div class="small-label">Жду ответа</div>
             <ul class="tasks-list compact">
-              {waiting.map((task) => (
+              {waiting().map((task) => (
                 <TaskItem
                   task={task}
-                  projectName={projects.find((p) => p.id === task.projectId)?.title || "Без проекта"}
-                  onToggle={onToggleTask}
+                  projectName={props.projects.find((p) => p.id === task.projectId)?.title || "Без проекта"}
+                  onToggle={props.onToggleTask}
                 />
               ))}
             </ul>

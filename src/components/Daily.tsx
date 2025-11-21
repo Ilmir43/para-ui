@@ -1,3 +1,4 @@
+import { createMemo } from "solid-js";
 import { DailyNote } from "../types";
 
 interface DailyProps {
@@ -5,8 +6,8 @@ interface DailyProps {
   onToggleHabit: (id: string) => void;
 }
 
-export default function Daily({ notes, onToggleHabit }: DailyProps) {
-  if (!notes.length) {
+export default function Daily(props: DailyProps) {
+  if (!props.notes.length) {
     return (
       <section class="card">
         <div class="card-header">
@@ -20,11 +21,14 @@ export default function Daily({ notes, onToggleHabit }: DailyProps) {
     );
   }
 
-  const latest = notes[0];
-  const blocksMap: Record<string, typeof latest.habits> = {};
-  latest.habits.forEach((habit) => {
-    if (!blocksMap[habit.block]) blocksMap[habit.block] = [];
-    blocksMap[habit.block].push(habit);
+  const latest = createMemo(() => props.notes[0]);
+  const blocksMap = createMemo(() => {
+    const map: Record<string, DailyNote["habits"]> = {};
+    latest().habits.forEach((habit) => {
+      if (!map[habit.block]) map[habit.block] = [];
+      map[habit.block].push(habit);
+    });
+    return map;
   });
 
   return (
@@ -32,19 +36,19 @@ export default function Daily({ notes, onToggleHabit }: DailyProps) {
       <section class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Привычки за {latest.date}</div>
+            <div class="card-title">Привычки за {latest().date}</div>
             <div class="card-subtitle">Блоки привычек по заголовкам в ежедневнике</div>
           </div>
         </div>
-        {Object.keys(blocksMap).map((blockName) => (
+        {Object.keys(blocksMap()).map((blockName) => (
           <div class="habit-block">
             <div class="habit-block-title">{blockName}</div>
             <ul class="tasks-list">
-              {blocksMap[blockName].map((habit) => (
+              {blocksMap()[blockName].map((habit) => (
                 <li
                   class={`task-item ${habit.done ? "done" : ""}`}
                   data-habit-id={habit.id}
-                  onClick={() => onToggleHabit(habit.id)}
+                  onClick={() => props.onToggleHabit(habit.id)}
                 >
                   <div class={`checkbox ${habit.done ? "checked" : ""}`}>{habit.done ? "✓" : ""}</div>
                   <div>
@@ -61,11 +65,11 @@ export default function Daily({ notes, onToggleHabit }: DailyProps) {
         <div class="card-header">
           <div>
             <div class="card-title">История ежедневников</div>
-            <div class="card-subtitle">{notes.length} файлов</div>
+            <div class="card-subtitle">{props.notes.length} файлов</div>
           </div>
         </div>
         <div>
-          {notes.slice(0, 10).map((note) => (
+          {props.notes.slice(0, 10).map((note) => (
             <div class="daily-day">
               <div class="daily-day-header">
                 <span>{note.date}</span>

@@ -29,12 +29,12 @@ const statusLabel: Record<TaskStatus, string> = {
   cancelled: "Отменено",
 };
 
-export default function StatusBoard({ projects, tasks, onToggleTask }: StatusBoardProps) {
+export default function StatusBoard(props: StatusBoardProps) {
   return (
     <div class="status-board">
       <For each={statusOrder}>
         {(status) => {
-          const items = tasks.filter((t) => t.status === status);
+          const items = props.tasks.filter((t) => t.status === status);
           return (
             <div class="status-column" data-status={status}>
               <div class="status-column__header">
@@ -44,12 +44,12 @@ export default function StatusBoard({ projects, tasks, onToggleTask }: StatusBoa
               <ul class="tasks-list compact">
                 {items.length ? (
                   items.map((task) => {
-                    const project = projects.find((p) => p.id === task.projectId);
+                    const project = props.projects.find((p) => p.id === task.projectId);
                     return (
                       <TaskItem
                         task={task}
                         projectName={project?.title || "Без проекта"}
-                        onToggle={onToggleTask}
+                        onToggle={props.onToggleTask}
                       />
                     );
                   })

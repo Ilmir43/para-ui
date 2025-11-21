@@ -5,17 +5,17 @@ interface HeaderProps {
   children?: JSX.Element;
 }
 
-export default function Header({ subtitle, children }: HeaderProps) {
+export default function Header(props: HeaderProps) {
   return (
     <header>
       <div class="brand">
         <div class="brand-logo">OP</div>
         <div>
           <div class="brand-text-title">Obsidian Dashboard</div>
-          <div class="brand-text-sub">{subtitle}</div>
+          <div class="brand-text-sub">{props.subtitle}</div>
         </div>
       </div>
-      {children}
+      {props.children}
     </header>
   );
 }
