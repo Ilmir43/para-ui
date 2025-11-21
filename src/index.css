@@ -120,6 +120,49 @@ main {
   color: var(--text-muted);
 }
 
+.env-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  margin-bottom: 12px;
+}
+
+.env-hints-title {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.env-hints-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.env-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #f9fafb;
+}
+
+.env-hint-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.env-hint-value {
+  font-size: 12px;
+  color: var(--text-main);
+  word-break: break-all;
+}
+
 .btn-outline,
 .btn-solid {
   font-size: 11px;

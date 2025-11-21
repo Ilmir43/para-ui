@@ -10,6 +10,7 @@ import StatusBoard from "./components/StatusBoard";
 import { parseDailyFile, parseProjectFile } from "./lib/parsers";
 import { slugify } from "./lib/slugify";
 import { demoDaily, demoProjects, demoTasks } from "./lib/demoData";
+import { envPaths } from "./lib/env";
 import { AppState, DailyNote, Project, ProjectFormValue, Task } from "./types";
 
 const initialState: AppState = {
@@ -26,6 +27,14 @@ export default function App() {
   const [tasks, setTasks] = createSignal<Task[]>(demoTasks);
   const [dailyNotes, setDailyNotes] = createSignal<DailyNote[]>(demoDaily);
   const [state, setState] = createSignal<AppState>(initialState);
+
+  const envPathHints = (
+    [
+      envPaths.projectsDir && { label: "Проекты", value: envPaths.projectsDir },
+      envPaths.areasDir && { label: "Сферы", value: envPaths.areasDir },
+      envPaths.dailyDir && { label: "Ежедневник", value: envPaths.dailyDir },
+    ].filter(Boolean) as { label: string; value: string }[]
+  ).sort((a, b) => a.label.localeCompare(b.label));
 
   const updateState = (partial: Partial<AppState>) => setState((prev) => ({ ...prev, ...partial }));
 
@@ -180,6 +189,19 @@ export default function App() {
             Выбрать папку ежедневников
           </button>
         </div>
+        <Show when={envPathHints.length}>
+          <div class="env-hints">
+            <div class="env-hints-title">Предустановленные пути (.env):</div>
+            <div class="env-hints-list">
+              {envPathHints.map((item) => (
+                <div class="env-hint" role="status">
+                  <span class="env-hint-label">{item.label}</span>
+                  <span class="env-hint-value">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Show>
         <div style={{ "margin-top": "12px" }}>
           <Show when={!noData} fallback={
             <section class="card">
