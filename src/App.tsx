@@ -120,6 +120,38 @@ export default function App() {
     );
   };
 
+  const handlePlanToday = (dailyPriorityId: string | null, supportIds: string[]) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const plannedIds = new Set([dailyPriorityId, ...supportIds].filter(Boolean) as string[]);
+
+    setTasks((current) =>
+      current.map((task) => {
+        if (plannedIds.has(task.id)) {
+          return {
+            ...task,
+            status: "planned_today",
+            plannedDate: today,
+            dailyPriority: task.id === dailyPriorityId,
+          };
+        }
+
+        if (task.status === "planned_today" && !plannedIds.has(task.id)) {
+          return {
+            ...task,
+            status: "next",
+            dailyPriority: false,
+          };
+        }
+
+        if (task.dailyPriority && task.id !== dailyPriorityId) {
+          return { ...task, dailyPriority: false };
+        }
+
+        return task;
+      })
+    );
+  };
+
   const handleFilterChange = (type: "status" | "priority" | "area", value: string) => {
     updateState({ [`${type}Filter`]: value } as Partial<AppState>);
   };
@@ -249,7 +281,7 @@ export default function App() {
             </Show>
 
             <Show when={state().activeTab === "today"}>
-              <Today projects={projects()} tasks={tasks()} onToggleTask={handleToggleTask} />
+              <Today projects={projects()} tasks={tasks()} onToggleTask={handleToggleTask} onPlanToday={handlePlanToday} />
             </Show>
 
             <Show when={state().activeTab === "daily"}>

@@ -7,6 +7,11 @@ interface TaskItemProps {
 }
 
 export default function TaskItem(props: TaskItemProps) {
+  const isLong = props.task.timeBucket === "long";
+  const isStaleNext =
+    props.task.status === "next" && daysSince(props.task.plannedDate || props.task.createdAt) >= 7;
+  const isAvoiding = props.task.flags.fear || isStaleNext;
+
   return (
     <li class={`task-item ${props.task.status === "done" ? "done" : ""}`} data-task-id={props.task.id}>
       <button class={`checkbox ${props.task.status === "done" ? "checked" : ""}`} onClick={() => props.onToggle(props.task.id)}>
@@ -21,10 +26,17 @@ export default function TaskItem(props: TaskItemProps) {
           <span class={`pill-soft pill-${props.task.timeBucket}`}>{formatBucket(props.task.timeBucket)}</span>
           {props.task.flags.quick && <span class="pill-soft">Quick</span>}
           {props.task.flags.frog && <span class="pill-soft">Frog</span>}
-          {props.task.flags.fear && <span class="pill-soft">Avoiding</span>}
+          {isAvoiding && <span class="pill-soft">Avoiding</span>}
           {props.task.status === "waiting" && <span class="pill-soft">Waiting</span>}
           {props.task.dailyPriority && <span class="pill-ghost">Daily priority</span>}
         </div>
+        {(isLong || isAvoiding) && (
+          <div class="task-warning">
+            {isLong
+              ? "Эта задача крупная, стоит разбить её на несколько шагов."
+              : "Задача зависла слишком долго. Упростите или превратите её в лягушку."}
+          </div>
+        )}
       </div>
     </li>
   );
@@ -43,4 +55,12 @@ function formatBucket(bucket: string) {
     default:
       return bucket;
   }
+}
+
+function daysSince(value?: string | null) {
+  if (!value) return 0;
+  const now = new Date();
+  const date = new Date(value);
+  const diff = now.getTime() - date.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
