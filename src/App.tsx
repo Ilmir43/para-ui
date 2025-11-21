@@ -8,6 +8,8 @@ import Today from "./components/Today";
 import Daily from "./components/Daily";
 import Processing from "./components/Processing";
 import StatusBoard from "./components/StatusBoard";
+import Modal from "./components/Modal";
+import TaskForm from "./components/TaskForm";
 import { parseDailyFile, parseProjectFile } from "./lib/parsers";
 import { slugify } from "./lib/slugify";
 import { demoDaily, demoProjects, demoTasks } from "./lib/demoData";
@@ -23,11 +25,49 @@ const initialState: AppState = {
   formMode: "idle",
 };
 
+type TaskModalState = {
+  mode: "create" | "edit";
+  taskId?: string | null;
+  defaultProjectId?: string | null;
+};
+
 export default function App() {
   const [projects, setProjects] = createSignal<Project[]>(demoProjects);
   const [tasks, setTasks] = createSignal<Task[]>(demoTasks);
   const [dailyNotes, setDailyNotes] = createSignal<DailyNote[]>(demoDaily);
   const [state, setState] = createSignal<AppState>(initialState);
+  const [taskModal, setTaskModal] = createSignal<TaskModalState | null>(null);
+
+  const openTaskModal = (mode: TaskModalState["mode"], options?: Partial<TaskModalState>) => {
+    setTaskModal({ mode, ...options });
+  };
+
+  const closeTaskModal = () => setTaskModal(null);
+
+  const downloadProjectFile = (project: Project) => {
+    const frontmatterLines = [
+      `id: ${project.id}`,
+      `title: ${project.title}`,
+      `status: ${project.status}`,
+      `priority: ${project.priority}`,
+      `area: ${project.area}`,
+      project.deadline ? `deadline: ${project.deadline}` : "",
+      `progress: ${project.progress}`,
+      project.description ? `description: ${project.description}` : "",
+    ].filter(Boolean);
+
+    const markdown = `---\n${frontmatterLines.join("\n")}\n---\n\n# ${project.title}\n\n- [ ] Опишите ближайший шаг\n`;
+
+    const blob = new Blob([markdown], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = project.fileName;
+    anchor.click();
+
+    URL.revokeObjectURL(url);
+  };
 
   const envPathHints = (
     [
@@ -297,6 +337,13 @@ export default function App() {
     updateState({ selectedProjectId: id, formMode: "idle" });
   };
 
+  const modalTask = createMemo(() => tasks().find((task) => task.id === taskModal()?.taskId) || null);
+
+  const handleSubmitTaskModal = (value: TaskFormValue) => {
+    handleUpsertTask(taskModal()?.mode === "edit" ? "edit" : "create", value);
+    closeTaskModal();
+  };
+
   const handleStartCreate = () => updateState({ formMode: "create" });
   const handleStartEdit = (id: string) => updateState({ formMode: "edit", selectedProjectId: id });
   const handleCancelForm = () => updateState({ formMode: "idle" });
@@ -316,6 +363,7 @@ export default function App() {
         description: value.description,
       };
       setProjects((current) => [...current, newProject]);
+      downloadProjectFile(newProject);
       updateState({ formMode: "idle", selectedProjectId: newProject.id, activeTab: "projects" });
       return;
     }
@@ -404,9 +452,9 @@ export default function App() {
                 onFilterChange={handleFilterChange}
                 onSelectProject={handleSelectProject}
                 onToggleTask={handleToggleTask}
-                onUpsertTask={handleUpsertTask}
                 onReorderProjects={handleReorderProjects}
                 onReorderTasks={handleReorderTasks}
+                onOpenTaskModal={openTaskModal}
                 onStartCreate={handleStartCreate}
                 onStartEdit={handleStartEdit}
                 onCancelForm={handleCancelForm}
@@ -419,7 +467,7 @@ export default function App() {
                 projects={projects()}
                 tasks={tasks()}
                 onToggleTask={handleToggleTask}
-                onUpsertTask={handleUpsertTask}
+                onOpenTaskModal={openTaskModal}
                 onStartProcessing={handleStartProcessing}
               />
             </Show>
@@ -446,6 +494,22 @@ export default function App() {
           </Show>
         </div>
       </main>
+
+      <Show when={taskModal()}>
+        <Modal
+          title={taskModal()!.mode === "edit" ? "Редактировать задачу" : "Новая задача"}
+          onClose={closeTaskModal}
+        >
+          <TaskForm
+            mode={taskModal()!.mode}
+            projects={projects()}
+            defaultProjectId={taskModal()!.defaultProjectId || state().selectedProjectId}
+            initial={modalTask() || undefined}
+            onCancel={closeTaskModal}
+            onSubmit={handleSubmitTaskModal}
+          />
+        </Modal>
+      </Show>
     </div>
   );
 }
