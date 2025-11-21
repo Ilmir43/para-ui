@@ -68,7 +68,7 @@ export interface DailyNote {
 }
 
 export interface AppState {
-  activeTab: "dashboard" | "projects" | "processing" | "today" | "daily";
+  activeTab: "dashboard" | "projects" | "inbox" | "processing" | "today" | "daily";
   statusFilter: ProjectStatus | "all";
   priorityFilter: ProjectPriority | "all";
   areaFilter: string | "all";
