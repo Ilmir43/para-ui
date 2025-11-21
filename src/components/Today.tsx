@@ -1,19 +1,23 @@
-import { createMemo } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 import TaskItem from "./TaskItem";
 import { Project, Task } from "../types";
+import SmartMorningPlanning from "./SmartMorningPlanning";
 
 interface TodayProps {
   projects: Project[];
   tasks: Task[];
   onToggleTask: (id: string) => void;
+  onPlanToday: (dailyPriorityId: string | null, supportIds: string[]) => void;
 }
 
 export default function Today(props: TodayProps) {
+  const [showPlanner, setShowPlanner] = createSignal(false);
   const todayList = createMemo(() => props.tasks.filter((t) => t.status === "planned_today" || t.status === "active"));
   const waiting = createMemo(() => props.tasks.filter((t) => t.status === "waiting"));
   const dailyPriority = createMemo(() => todayList().find((t) => t.dailyPriority));
   const frogs = createMemo(() => todayList().filter((t) => t.flags.frog));
   const quick = createMemo(() => todayList().filter((t) => t.timeBucket === "micro" && t.flags.quick));
+  const bucketOrder: Record<Task["timeBucket"], number> = { micro: 0, short: 1, medium: 2, long: 3 };
 
   const grouped = createMemo(() => {
     const bucket: Record<string, Task[]> = {};
@@ -45,7 +49,15 @@ export default function Today(props: TodayProps) {
           <div class="section-title">Сегодня</div>
           <div class="card-subtitle">{todayList().length} задач в фокусе</div>
         </div>
+        <button class="btn-outline" type="button" onClick={() => setShowPlanner(true)}>
+          Smart Morning Planning
+        </button>
       </div>
+
+      <Show when={showPlanner()}>
+        <SmartMorningPlanning tasks={props.tasks} onApply={props.onPlanToday} onClose={() => setShowPlanner(false)} />
+      </Show>
+
       <div class="stack">
         {dailyPriority() && (
           <div class="card accent">
@@ -87,6 +99,7 @@ export default function Today(props: TodayProps) {
                 <ul class="tasks-list">
                   {grouped()[projectId]
                     .filter((task) => !task.flags.frog)
+                    .sort((a, b) => bucketOrder[a.timeBucket] - bucketOrder[b.timeBucket])
                     .map((task) => (
                       <TaskItem task={task} projectName={project.title} onToggle={props.onToggleTask} />
                     ))}

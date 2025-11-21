@@ -393,6 +393,11 @@ main {
   border-color: #e5e7eb;
 }
 
+.task-item.selected {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+
 .task-item.done {
   opacity: 0.55;
 }
@@ -624,6 +629,39 @@ textarea {
   margin-bottom: 6px;
 }
 
+.planner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.planner-summary {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.danger-label {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.planner-task {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  cursor: pointer;
+}
+
 .tasks-list.compact .task-item {
   padding: 8px 6px;
 }
@@ -633,6 +671,13 @@ textarea {
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 4px;
+}
+
+.task-warning {
+  margin-top: 6px;
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .pill-micro {
