@@ -13,7 +13,7 @@ import TaskForm from "./components/TaskForm";
 import { parseDailyFile, parseProjectFile } from "./lib/parsers";
 import { slugify } from "./lib/slugify";
 import { demoDaily, demoProjects, demoTasks } from "./lib/demoData";
-import { envPaths, hasEnvPath } from "./lib/env";
+import { envHttpPaths, envPaths, hasEnvPath } from "./lib/env";
 import { AppState, DailyNote, Project, ProjectFormValue, Task, TaskFormValue } from "./types";
 
 const initialState: AppState = {
@@ -88,7 +88,7 @@ export default function App() {
     const files: { name: string; content: string }[] = [];
     for (const fileName of payload.files) {
       if (!fileName.toLowerCase().endsWith(".md")) continue;
-      const url = `${normalized}/${fileName}`;
+      const url = `${normalized}/${encodeURIComponent(fileName)}`;
       const fileResponse = await fetch(url);
       if (!fileResponse.ok) throw new Error(`Не удалось загрузить ${url}`);
       const content = await fileResponse.text();
@@ -99,9 +99,9 @@ export default function App() {
   };
 
   const loadProjectsFromEnvDir = async () => {
-    if (!hasEnvPath(envPaths.projectsDir)) return false;
+    if (!hasEnvPath(envPaths.projectsDir) || !envHttpPaths.projectsDir) return false;
     try {
-      const files = await fetchMarkdownFromHttpDir(envPaths.projectsDir);
+      const files = await fetchMarkdownFromHttpDir(envHttpPaths.projectsDir);
       const collectedProjects: Project[] = [];
       const collectedTasks: Task[] = [];
 
@@ -124,9 +124,9 @@ export default function App() {
   };
 
   const loadDailyFromEnvDir = async () => {
-    if (!hasEnvPath(envPaths.dailyDir)) return false;
+    if (!hasEnvPath(envPaths.dailyDir) || !envHttpPaths.dailyDir) return false;
     try {
-      const files = await fetchMarkdownFromHttpDir(envPaths.dailyDir);
+      const files = await fetchMarkdownFromHttpDir(envHttpPaths.dailyDir);
       const notes: DailyNote[] = [];
 
       files.forEach(({ name, content }) => {
