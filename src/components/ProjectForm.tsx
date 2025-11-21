@@ -18,6 +18,10 @@ const defaultValue: ProjectFormValue = {
   deadline: "",
   progress: 0,
   description: "",
+  projectNumber: "",
+  targetPath: "",
+  vaultName: "",
+  templaterTemplate: "",
 };
 
 export default function ProjectForm(props: ProjectFormProps) {
@@ -32,6 +36,10 @@ export default function ProjectForm(props: ProjectFormProps) {
         deadline: props.initial.deadline || "",
         progress: props.initial.progress,
         description: props.initial.description,
+        projectNumber: "",
+        targetPath: "",
+        vaultName: "",
+        templaterTemplate: "",
       };
     }
     return { ...defaultValue };
@@ -53,6 +61,10 @@ export default function ProjectForm(props: ProjectFormProps) {
       deadline: (formData.get("deadline") as string) || "",
       progress: Number(formData.get("progress")) || 0,
       description: (formData.get("description") as string) || "",
+      projectNumber: (formData.get("projectNumber") as string) || "",
+      targetPath: (formData.get("targetPath") as string) || "",
+      vaultName: (formData.get("vaultName") as string) || "",
+      templaterTemplate: (formData.get("templaterTemplate") as string) || "",
     };
     props.onSubmit(value);
   };
@@ -103,6 +115,54 @@ export default function ProjectForm(props: ProjectFormProps) {
           />
         </div>
       </div>
+
+      {props.mode === "create" && (
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="projectNumber">Номер проекта</label>
+            <input
+              id="projectNumber"
+              name="projectNumber"
+              type="text"
+              value={currentValue().projectNumber}
+              placeholder="Например: P-2024-015"
+            />
+          </div>
+          <div class="form-group">
+            <label for="targetPath">Путь в Obsidian</label>
+            <input
+              id="targetPath"
+              name="targetPath"
+              type="text"
+              value={currentValue().targetPath}
+              placeholder="Projects/Активные"
+            />
+            <div class="form-hint">Куда поместить файл (папка или полный путь внутри вальта).</div>
+          </div>
+          <div class="form-group">
+            <label for="vaultName">Vault</label>
+            <input
+              id="vaultName"
+              name="vaultName"
+              type="text"
+              value={currentValue().vaultName}
+              placeholder="MySecondBrain"
+            />
+            <div class="form-hint">Название вальта для схемы obsidian://advanced-uri.</div>
+          </div>
+          <div class="form-group">
+            <label for="templaterTemplate">Шаблон Templater</label>
+            <input
+              id="templaterTemplate"
+              name="templaterTemplate"
+              type="text"
+              value={currentValue().templaterTemplate}
+              placeholder="Templates/Project.md"
+            />
+            <div class="form-hint">Путь к шаблону, который должен обработать Templater.</div>
+          </div>
+        </div>
+      )}
 
       {props.mode === "edit" && <input type="hidden" name="id" value={currentValue().id} aria-hidden />}
 

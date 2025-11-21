@@ -69,6 +69,33 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  const triggerObsidianTemplater = (project: Project, value: ProjectFormValue) => {
+    const vaultName = value.vaultName?.trim();
+    const templaterTemplate = value.templaterTemplate?.trim();
+
+    if (!vaultName || !templaterTemplate) {
+      alert("Заполни поля Vault и шаблон Templater, чтобы отправить ссылку в Obsidian.");
+      return;
+    }
+
+    const targetPath = (value.targetPath || "").trim() || `Projects/${project.fileName}`;
+    const payload = {
+      id: project.id,
+      title: project.title,
+      area: project.area,
+      projectNumber: value.projectNumber || "",
+      targetPath,
+      fileName: project.fileName,
+    };
+
+    const uri =
+      `obsidian://advanced-uri?vault=${encodeURIComponent(vaultName)}` +
+      `&templater=${encodeURIComponent(templaterTemplate)}` +
+      `&data=${encodeURIComponent(JSON.stringify(payload))}`;
+
+    window.open(uri, "_blank");
+  };
+
   const envPathHints = (
     [
       envPaths.projectsDir && { label: "Проекты", value: envPaths.projectsDir },
@@ -364,6 +391,7 @@ export default function App() {
       };
       setProjects((current) => [...current, newProject]);
       downloadProjectFile(newProject);
+      triggerObsidianTemplater(newProject, value);
       updateState({ formMode: "idle", selectedProjectId: newProject.id, activeTab: "projects" });
       return;
     }

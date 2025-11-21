@@ -99,4 +99,8 @@ export interface ProjectFormValue {
   deadline: string;
   progress: number;
   description: string;
+  projectNumber?: string;
+  targetPath?: string;
+  vaultName?: string;
+  templaterTemplate?: string;
 }

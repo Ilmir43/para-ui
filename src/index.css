@@ -594,6 +594,12 @@ textarea {
   color: var(--text-main);
 }
 
+.form-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 .footer-actions {
   display: flex;
   gap: 6px;
