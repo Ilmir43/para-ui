@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import Tabs from "./components/Tabs";
 import Dashboard from "./components/Dashboard";
 import ProjectsTab from "./components/ProjectsTab";
+import Inbox from "./components/Inbox";
 import Today from "./components/Today";
 import Daily from "./components/Daily";
 import Processing from "./components/Processing";
@@ -299,6 +300,7 @@ export default function App() {
   const handleStartCreate = () => updateState({ formMode: "create" });
   const handleStartEdit = (id: string) => updateState({ formMode: "edit", selectedProjectId: id });
   const handleCancelForm = () => updateState({ formMode: "idle" });
+  const handleStartProcessing = () => updateState({ activeTab: "processing" });
 
   const handleSubmitForm = (value: ProjectFormValue) => {
     if (state().formMode === "create") {
@@ -409,6 +411,16 @@ export default function App() {
                 onStartEdit={handleStartEdit}
                 onCancelForm={handleCancelForm}
                 onSubmitForm={handleSubmitForm}
+              />
+            </Show>
+
+            <Show when={state().activeTab === "inbox"}>
+              <Inbox
+                projects={projects()}
+                tasks={tasks()}
+                onToggleTask={handleToggleTask}
+                onUpsertTask={handleUpsertTask}
+                onStartProcessing={handleStartProcessing}
               />
             </Show>
 

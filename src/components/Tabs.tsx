@@ -10,6 +10,7 @@ interface TabsProps {
 const tabs: { key: TabKey; label: string }[] = [
   { key: "dashboard", label: "Дашборд" },
   { key: "projects", label: "Проекты" },
+  { key: "inbox", label: "Inbox" },
   { key: "processing", label: "Processing" },
   { key: "today", label: "Сегодня" },
   { key: "daily", label: "Ежедневник" },
