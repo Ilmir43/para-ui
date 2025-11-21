@@ -1,12 +1,11 @@
 import { createEffect, createMemo, createSignal, Show } from "solid-js";
-import { Project, Task, TaskFormValue } from "../types";
-import TaskForm from "./TaskForm";
+import { Project, Task } from "../types";
 
 interface InboxProps {
   projects: Project[];
   tasks: Task[];
   onToggleTask: (id: string) => void;
-  onUpsertTask: (mode: "create" | "edit", value: TaskFormValue) => void;
+  onOpenTaskModal: (mode: "create" | "edit", payload?: { taskId?: string }) => void;
   onStartProcessing: () => void;
 }
 
@@ -21,7 +20,6 @@ export default function Inbox(props: InboxProps) {
   const inboxTasks = createMemo(() => props.tasks.filter((t) => t.status === "inbox"));
   const [contextFilter, setContextFilter] = createSignal<string>("all");
   const [selectedTaskId, setSelectedTaskId] = createSignal<string | null>(null);
-  const [panelMode, setPanelMode] = createSignal<"view" | "edit">("view");
 
   const filteredTasks = createMemo(() => {
     const items = inboxTasks();
@@ -34,15 +32,8 @@ export default function Inbox(props: InboxProps) {
   createEffect(() => {
     if (!selectedTask() && filteredTasks().length) {
       setSelectedTaskId(filteredTasks()[0].id);
-      setPanelMode("view");
     }
   });
-
-  const handleSubmitEdit = (value: TaskFormValue) => {
-    props.onUpsertTask("edit", value);
-    setSelectedTaskId(value.id || selectedTaskId());
-    setPanelMode("view");
-  };
 
   return (
     <section class="card">
@@ -74,10 +65,7 @@ export default function Inbox(props: InboxProps) {
                 return (
                   <li
                     class={`inbox-task ${isActive ? "active" : ""}`}
-                    onClick={() => {
-                      setSelectedTaskId(task.id);
-                      setPanelMode("view");
-                    }}
+                    onClick={() => setSelectedTaskId(task.id)}
                   >
                     <div class="task-main">
                       <div class="task-title">{task.title}</div>
@@ -102,7 +90,7 @@ export default function Inbox(props: InboxProps) {
                         onClick={(event) => {
                           event.stopPropagation();
                           setSelectedTaskId(task.id);
-                          setPanelMode("edit");
+                          props.onOpenTaskModal("edit", { taskId: task.id });
                         }}
                       >
                         Редактировать
@@ -126,36 +114,27 @@ export default function Inbox(props: InboxProps) {
                   <span class="pill-soft">{task().context}</span>
                 </div>
 
-                <Show
-                  when={panelMode() === "view"}
-                  fallback={
-                    <TaskForm
-                      mode="edit"
-                      projects={props.projects}
-                      initial={task()}
-                      onCancel={() => setPanelMode("view")}
-                      onSubmit={handleSubmitEdit}
-                    />
-                  }
-                >
-                  <div class="stack" style={{ gap: "8px" }}>
-                    <div class="card-title">{task().title}</div>
-                    <div class="muted-label">{task().description || "Без описания"}</div>
-                    <div class="context-meta">
-                      <span class="pill-soft">Проект: {props.projects.find((p) => p.id === task().projectId)?.title || "Без проекта"}</span>
-                      <span class="pill-soft">Сфера: {task().area}</span>
-                      <span class="pill-soft">Дедлайн: {task().dueDate || "нет"}</span>
-                    </div>
-                    <div class="footer-actions">
-                      <button class="btn-outline" type="button" onClick={() => props.onToggleTask(task().id)}>
-                        Отметить выполненной
-                      </button>
-                      <button class="btn-solid" type="button" onClick={() => setPanelMode("edit")}>
-                        Редактировать
-                      </button>
-                    </div>
+                <div class="stack" style={{ gap: "8px" }}>
+                  <div class="card-title">{task().title}</div>
+                  <div class="muted-label">{task().description || "Без описания"}</div>
+                  <div class="context-meta">
+                    <span class="pill-soft">Проект: {props.projects.find((p) => p.id === task().projectId)?.title || "Без проекта"}</span>
+                    <span class="pill-soft">Сфера: {task().area}</span>
+                    <span class="pill-soft">Дедлайн: {task().dueDate || "нет"}</span>
                   </div>
-                </Show>
+                  <div class="footer-actions">
+                    <button class="btn-outline" type="button" onClick={() => props.onToggleTask(task().id)}>
+                      Отметить выполненной
+                    </button>
+                    <button
+                      class="btn-solid"
+                      type="button"
+                      onClick={() => props.onOpenTaskModal("edit", { taskId: task().id })}
+                    >
+                      Редактировать
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </Show>
