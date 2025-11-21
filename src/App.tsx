@@ -180,7 +180,7 @@ export default function App() {
             Выбрать папку ежедневников
           </button>
         </div>
-        <div style={{ marginTop: "12px" }}>
+        <div style={{ "margin-top": "12px" }}>
           <Show when={!noData} fallback={
             <section class="card">
               <div class="card-header">

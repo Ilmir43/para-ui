@@ -95,7 +95,7 @@ export default function ProjectsTab({
         </div>
         <div class="projects-grid">
           {filtered.length ? (
-            filtered.map((project) => <ProjectCard key={project.id} project={project} onSelect={onSelectProject} />)
+            filtered.map((project) => <ProjectCard project={project} onSelect={onSelectProject} />)
           ) : (
             <div class="empty-state">Нет проектов под такие фильтры.</div>
           )}
@@ -136,7 +136,10 @@ export default function ProjectsTab({
             <div class="card-header">
               <div>
                 <div class="project-detail-title">{current.title}</div>
-                <div class="project-detail-meta" style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
+                <div
+                  class="project-detail-meta"
+                  style={{ display: "flex", "flex-wrap": "wrap", gap: "6px", "margin-top": "4px" }}
+                >
                   <span class="pill-status" data-status={current.status}>{statusLabel[current.status]}</span>
                   <span class="pill-ghost" data-priority={current.priority}>Приоритет: {priorityLabel[current.priority]}</span>
                   <span class="pill-soft">Сфера: {current.area}</span>
@@ -155,18 +158,11 @@ export default function ProjectsTab({
               <div>
                 <div class="small-label">Задачи</div>
                 <ul class="tasks-list">
-                  {projectTasks.length ? (
-                    projectTasks.map((task) => (
-                      <TaskItem
-                        key={task.id}
-                        task={task}
-                        projectName={current.title}
-                        onToggle={onToggleTask}
-                      />
-                    ))
-                  ) : (
-                    <div class="empty-state">Нет задач в этом проекте.</div>
-                  )}
+                  {projectTasks.length
+                    ? projectTasks.map((task) => (
+                        <TaskItem task={task} projectName={current.title} onToggle={onToggleTask} />
+                      ))
+                    : <div class="empty-state">Нет задач в этом проекте.</div>}
                 </ul>
               </div>
             </div>
