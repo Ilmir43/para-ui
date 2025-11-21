@@ -1,11 +1,12 @@
 interface TabsProps {
   active: string;
-  onChange: (tab: "dashboard" | "projects" | "today" | "daily") => void;
+  onChange: (tab: "dashboard" | "projects" | "processing" | "today" | "daily") => void;
 }
 
 const tabs: { key: TabsProps["active"]; label: string }[] = [
   { key: "dashboard", label: "Дашборд" },
   { key: "projects", label: "Проекты" },
+  { key: "processing", label: "Processing" },
   { key: "today", label: "Сегодня" },
   { key: "daily", label: "Ежедневник" },
 ];

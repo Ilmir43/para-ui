@@ -11,8 +11,9 @@ interface DashboardProps {
 
 export default function Dashboard({ projects, tasks, onSelectProject, onToggleTask }: DashboardProps) {
   const activeProjects = projects.filter((p) => p.status === "active");
-  const todayTasks = tasks.filter((t) => t.today && !t.done);
+  const todayTasks = tasks.filter((t) => (t.status === "planned_today" || t.status === "active") && t.status !== "done");
   const areas = Array.from(new Set(projects.map((p) => p.area)));
+  const nextActions = tasks.filter((t) => t.status === "next");
 
   return (
     <div class="layout-columns">
@@ -64,6 +65,32 @@ export default function Dashboard({ projects, tasks, onSelectProject, onToggleTa
             <div class="empty-state">
               Можно помечать задачи как «сегодня» через теги/структуру — парсер допилим.
             </div>
+          )}
+        </ul>
+      </section>
+      <section class="card">
+        <div class="section-title-row">
+          <div>
+            <div class="section-title">Next Actions</div>
+            <div class="card-subtitle">Очередь готовых шагов</div>
+          </div>
+          <span class="pill-soft">{nextActions.length}</span>
+        </div>
+        <ul class="tasks-list compact">
+          {nextActions.length ? (
+            nextActions.map((task) => {
+              const project = projects.find((p) => p.id === task.projectId);
+              return (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  projectName={project?.title || "Без проекта"}
+                  onToggle={onToggleTask}
+                />
+              );
+            })
+          ) : (
+            <div class="empty-state">Разберите inbox, чтобы пополнить список.</div>
           )}
         </ul>
       </section>
