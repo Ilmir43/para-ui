@@ -6,24 +6,24 @@ interface TaskItemProps {
   onToggle: (id: string) => void;
 }
 
-export default function TaskItem({ task, projectName, onToggle }: TaskItemProps) {
+export default function TaskItem(props: TaskItemProps) {
   return (
-    <li class={`task-item ${task.status === "done" ? "done" : ""}`} data-task-id={task.id}>
-      <button class={`checkbox ${task.status === "done" ? "checked" : ""}`} onClick={() => onToggle(task.id)}>
-        {task.status === "done" ? "✓" : ""}
+    <li class={`task-item ${props.task.status === "done" ? "done" : ""}`} data-task-id={props.task.id}>
+      <button class={`checkbox ${props.task.status === "done" ? "checked" : ""}`} onClick={() => props.onToggle(props.task.id)}>
+        {props.task.status === "done" ? "✓" : ""}
       </button>
       <div>
-        <div class="task-title">{task.title}</div>
+        <div class="task-title">{props.task.title}</div>
         <div class="task-meta">
-          {projectName} · {task.area} · {task.context}
+          {props.projectName} · {props.task.area} · {props.task.context}
         </div>
         <div class="task-flags">
-          <span class={`pill-soft pill-${task.timeBucket}`}>{formatBucket(task.timeBucket)}</span>
-          {task.flags.quick && <span class="pill-soft">Quick</span>}
-          {task.flags.frog && <span class="pill-soft">Frog</span>}
-          {task.flags.fear && <span class="pill-soft">Avoiding</span>}
-          {task.status === "waiting" && <span class="pill-soft">Waiting</span>}
-          {task.dailyPriority && <span class="pill-ghost">Daily priority</span>}
+          <span class={`pill-soft pill-${props.task.timeBucket}`}>{formatBucket(props.task.timeBucket)}</span>
+          {props.task.flags.quick && <span class="pill-soft">Quick</span>}
+          {props.task.flags.frog && <span class="pill-soft">Frog</span>}
+          {props.task.flags.fear && <span class="pill-soft">Avoiding</span>}
+          {props.task.status === "waiting" && <span class="pill-soft">Waiting</span>}
+          {props.task.dailyPriority && <span class="pill-ghost">Daily priority</span>}
         </div>
       </div>
     </li>

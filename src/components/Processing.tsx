@@ -7,8 +7,8 @@ interface ProcessingProps {
   onUpdateTask: (id: string, payload: Partial<Task>) => void;
 }
 
-export default function Processing({ projects, tasks, onUpdateTask }: ProcessingProps) {
-  const inboxTasks = createMemo(() => tasks.filter((t) => t.status === "inbox"));
+export default function Processing(props: ProcessingProps) {
+  const inboxTasks = createMemo(() => props.tasks.filter((t) => t.status === "inbox"));
   const [cursor, setCursor] = createSignal(0);
   const current = createMemo(() => inboxTasks()[cursor()] || null);
 
@@ -19,7 +19,7 @@ export default function Processing({ projects, tasks, onUpdateTask }: Processing
   const handleCommit = (status: TaskStatus) => {
     const task = current();
     if (!task) return;
-    onUpdateTask(task.id, {
+    props.onUpdateTask(task.id, {
       status,
       area: draftArea(),
       context: draftContext(),
@@ -53,7 +53,7 @@ export default function Processing({ projects, tasks, onUpdateTask }: Processing
         fallback={<div class="empty-state">Все новые задачи разобраны — можно переключиться на Next Actions.</div>}
       >
         {(task) => {
-          const project = projects.find((p) => p.id === task().projectId);
+          const project = props.projects.find((p) => p.id === task().projectId);
           return (
             <div class="stack" style={{ gap: "12px" }}>
               <div class="card">{task().title}</div>

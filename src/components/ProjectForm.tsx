@@ -20,18 +20,18 @@ const defaultValue: ProjectFormValue = {
   description: "",
 };
 
-export default function ProjectForm({ mode, initial, onCancel, onSubmit }: ProjectFormProps) {
+export default function ProjectForm(props: ProjectFormProps) {
   const currentValue = createMemo<ProjectFormValue>(() => {
-    if (initial) {
+    if (props.initial) {
       return {
-        id: initial.id,
-        title: initial.title,
-        status: initial.status,
-        priority: initial.priority,
-        area: initial.area,
-        deadline: initial.deadline || "",
-        progress: initial.progress,
-        description: initial.description,
+        id: props.initial.id,
+        title: props.initial.title,
+        status: props.initial.status,
+        priority: props.initial.priority,
+        area: props.initial.area,
+        deadline: props.initial.deadline || "",
+        progress: props.initial.progress,
+        description: props.initial.description,
       };
     }
     return { ...defaultValue };
@@ -43,7 +43,7 @@ export default function ProjectForm({ mode, initial, onCancel, onSubmit }: Proje
     const formData = new FormData(form);
 
     const title = ((formData.get("title") as string) || "").trim();
-    const id = mode === "create" ? slugify(title || "project") : (formData.get("id") as string);
+    const id = props.mode === "create" ? slugify(title || "project") : (formData.get("id") as string);
     const value: ProjectFormValue = {
       id,
       title,
@@ -54,7 +54,7 @@ export default function ProjectForm({ mode, initial, onCancel, onSubmit }: Proje
       progress: Number(formData.get("progress")) || 0,
       description: (formData.get("description") as string) || "",
     };
-    onSubmit(value);
+    props.onSubmit(value);
   };
 
   return (
@@ -104,9 +104,7 @@ export default function ProjectForm({ mode, initial, onCancel, onSubmit }: Proje
         </div>
       </div>
 
-      {mode === "edit" && (
-        <input type="hidden" name="id" value={currentValue().id} aria-hidden />
-      )}
+      {props.mode === "edit" && <input type="hidden" name="id" value={currentValue().id} aria-hidden />}
 
       <div class="form-group">
         <label for="description">Описание</label>
@@ -120,9 +118,9 @@ export default function ProjectForm({ mode, initial, onCancel, onSubmit }: Proje
 
       <div class="form-actions">
         <button class="btn-solid" type="submit">
-          {mode === "create" ? "Создать проект" : "Сохранить изменения"}
+          {props.mode === "create" ? "Создать проект" : "Сохранить изменения"}
         </button>
-        <button class="btn-outline" type="button" onClick={onCancel}>
+        <button class="btn-outline" type="button" onClick={props.onCancel}>
           Отмена
         </button>
       </div>

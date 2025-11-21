@@ -1,3 +1,4 @@
+import { createMemo } from "solid-js";
 import ProjectCard from "./ProjectCard";
 import TaskItem from "./TaskItem";
 import { Project, Task } from "../types";
@@ -9,11 +10,11 @@ interface DashboardProps {
   onToggleTask: (id: string) => void;
 }
 
-export default function Dashboard({ projects, tasks, onSelectProject, onToggleTask }: DashboardProps) {
-  const activeProjects = projects.filter((p) => p.status === "active");
-  const todayTasks = tasks.filter((t) => t.status === "planned_today" || t.status === "active");
-  const areas = Array.from(new Set(projects.map((p) => p.area)));
-  const nextActions = tasks.filter((t) => t.status === "next");
+export default function Dashboard(props: DashboardProps) {
+  const activeProjects = createMemo(() => props.projects.filter((p) => p.status === "active"));
+  const todayTasks = createMemo(() => props.tasks.filter((t) => t.status === "planned_today" || t.status === "active"));
+  const areas = createMemo(() => Array.from(new Set(props.projects.map((p) => p.area))));
+  const nextActions = createMemo(() => props.tasks.filter((t) => t.status === "next"));
 
   return (
     <div class="layout-columns">
@@ -21,20 +22,20 @@ export default function Dashboard({ projects, tasks, onSelectProject, onToggleTa
         <div class="card-header">
           <div>
             <div class="card-title">Активные проекты</div>
-            <div class="card-subtitle">{activeProjects.length} проекта в фокусе</div>
+            <div class="card-subtitle">{activeProjects().length} проекта в фокусе</div>
           </div>
           <div style={{ display: "flex", gap: "8px", "align-items": "center" }}>
             <span class="small-label">Сферы:</span>
-            {areas.length ? (
-              areas.map((a) => <span class="area-pill">{a}</span>)
+            {areas().length ? (
+              areas().map((a) => <span class="area-pill">{a}</span>)
             ) : (
               <span class="muted-label">нет данных</span>
             )}
           </div>
         </div>
         <div class="projects-grid">
-          {activeProjects.map((project) => (
-            <ProjectCard project={project} onSelect={onSelectProject} />
+          {activeProjects().map((project) => (
+            <ProjectCard project={project} onSelect={props.onSelectProject} />
           ))}
         </div>
       </section>
@@ -43,17 +44,17 @@ export default function Dashboard({ projects, tasks, onSelectProject, onToggleTa
           <div>
             <div class="section-title">Задачи на сегодня</div>
             <div class="card-subtitle">
-              {todayTasks.length ? "Фокус на ближайшие шаги" : "Нет задач на сегодня"}
+              {todayTasks().length ? "Фокус на ближайшие шаги" : "Нет задач на сегодня"}
             </div>
           </div>
-          <span class="pill">{todayTasks.length} шт.</span>
+          <span class="pill">{todayTasks().length} шт.</span>
         </div>
         <ul class="tasks-list">
-          {todayTasks.length ? (
-            todayTasks.map((task) => {
-              const project = projects.find((p) => p.id === task.projectId);
+          {todayTasks().length ? (
+            todayTasks().map((task) => {
+              const project = props.projects.find((p) => p.id === task.projectId);
               return (
-                <TaskItem task={task} projectName={project?.title || "Без проекта"} onToggle={onToggleTask} />
+                <TaskItem task={task} projectName={project?.title || "Без проекта"} onToggle={props.onToggleTask} />
               );
             })
           ) : (
@@ -69,14 +70,14 @@ export default function Dashboard({ projects, tasks, onSelectProject, onToggleTa
             <div class="section-title">Next Actions</div>
             <div class="card-subtitle">Очередь готовых шагов</div>
           </div>
-          <span class="pill-soft">{nextActions.length}</span>
+          <span class="pill-soft">{nextActions().length}</span>
         </div>
         <ul class="tasks-list compact">
-          {nextActions.length ? (
-            nextActions.map((task) => {
-              const project = projects.find((p) => p.id === task.projectId);
+          {nextActions().length ? (
+            nextActions().map((task) => {
+              const project = props.projects.find((p) => p.id === task.projectId);
               return (
-                <TaskItem task={task} projectName={project?.title || "Без проекта"} onToggle={onToggleTask} />
+                <TaskItem task={task} projectName={project?.title || "Без проекта"} onToggle={props.onToggleTask} />
               );
             })
           ) : (

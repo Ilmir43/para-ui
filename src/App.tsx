@@ -1,4 +1,4 @@
-import { createSignal, Show } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 import Header from "./components/Header";
 import Tabs from "./components/Tabs";
 import Dashboard from "./components/Dashboard";
@@ -171,7 +171,7 @@ export default function App() {
     }
   };
 
-  const noData = !projects().length && !dailyNotes().length;
+  const noData = createMemo(() => !projects().length && !dailyNotes().length);
 
   return (
     <div class="app">
@@ -203,7 +203,7 @@ export default function App() {
           </div>
         </Show>
         <div style={{ "margin-top": "12px" }}>
-          <Show when={!noData} fallback={
+          <Show when={!noData()} fallback={
             <section class="card">
               <div class="card-header">
                 <div>
